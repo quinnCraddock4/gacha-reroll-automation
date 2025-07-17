@@ -1,0 +1,7 @@
+opencv-python==4.8.1.78
+numpy==1.24.3
+Pillow==10.0.0
+pyautogui==0.9.54
+pytesseract==0.3.10
+adb-shell==0.4.3
+configparser==5.3.0 

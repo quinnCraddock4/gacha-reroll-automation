@@ -1,0 +1,38 @@
+# Sample Gacha Reroll Macro
+# This is a basic example - modify coordinates and timing for your specific game
+
+# Click on gacha button
+CLICK,540,800,100
+
+# Wait for animation
+WAIT,2000
+
+# Click to skip animation (if available)
+CLICK,540,400,100
+
+# Wait for results
+WAIT,3000
+
+# Click to close results
+CLICK,540,900,100
+
+# Wait for menu to appear
+WAIT,1000
+
+# Click on reroll/reset button
+CLICK,540,700,100
+
+# Wait for confirmation dialog
+WAIT,1000
+
+# Click confirm reroll
+CLICK,400,600,100
+
+# Wait for reset to complete
+WAIT,3000
+
+# Click to start new game
+CLICK,540,800,100
+
+# Wait for game to load
+WAIT,5000 
