@@ -37,7 +37,7 @@ class SimpleRerollMonitor:
         self.instance_count = tk.IntVar(value=1)
         self.target_character = tk.StringVar(value="Kita Black")
         self.screenshot_timings = []  # List of seconds when to take screenshots
-        self.monitoring_duration = tk.IntVar(value=233)  # seconds (3:53)
+        self.monitoring_duration = tk.IntVar(value=227)  # seconds (3:47)
         self.cycle_duration = tk.IntVar(value=4)  # seconds
         self.auto_repeat = tk.BooleanVar(value=True)  # Auto repeat cycles
         self.target_pulls = tk.IntVar(value=4)  # Number of successful pulls to stop
@@ -149,7 +149,7 @@ class SimpleRerollMonitor:
         timing_frame = ttk.Frame(main_frame)
         timing_frame.grid(row=14, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=5)
         
-        self.timing_entry = tk.StringVar(value="142, 155, 167, 180, 195, 207, 221")  # Default screenshot timings (2:22, 2:35, 2:47, 3:00, 3:15, 3:27, 3:41)
+        self.timing_entry = tk.StringVar(value="128, 143, 157, 172, 187, 201, 216")  # Default screenshot timings (2:08, 2:23, 2:37, 2:52, 3:07, 3:21, 3:36)
         ttk.Label(timing_frame, text="Screenshot times (seconds, comma-separated):").pack(side=tk.LEFT)
         ttk.Entry(timing_frame, textvariable=self.timing_entry, width=30).pack(side=tk.LEFT, padx=(5, 0))
         
@@ -290,10 +290,47 @@ class SimpleRerollMonitor:
             possible_ports = list(range(5555, 5565))
             discovered_ports = []
             
+            # First, get list of already connected devices
+            try:
+                result = subprocess.run([adb_path, 'devices'], capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    self.log(f"Currently connected devices: {result.stdout}")
+                    # Parse already connected ports
+                    connected_ports = []
+                    for line in result.stdout.strip().split('\n')[1:]:  # Skip header
+                        if line.strip() and 'device' in line:
+                            if '127.0.0.1:' in line:
+                                port = int(line.split(':')[1].split()[0])
+                                connected_ports.append(port)
+                            elif 'emulator-' in line:
+                                port = int(line.split('-')[1].split()[0])
+                                connected_ports.append(port)
+                    self.log(f"Already connected ports: {connected_ports}")
+                else:
+                    connected_ports = []
+            except Exception as e:
+                self.log(f"Error getting connected devices: {str(e)}")
+                connected_ports = []
+            
             # Test each port with multiple methods
             for port in possible_ports:
                 try:
                     self.log(f"Testing port {port}...")
+                    
+                    # If already connected, test it directly
+                    if port in connected_ports:
+                        try:
+                            result = subprocess.run(
+                                [adb_path, '-s', f'127.0.0.1:{port}', 'shell', 'echo', 'test'], 
+                                capture_output=True, text=True, timeout=5
+                            )
+                            
+                            if result.returncode == 0:
+                                discovered_ports.append(port)
+                                self.log(f"✅ Found already connected instance on port {port}")
+                                continue
+                        except Exception as e:
+                            self.log(f"❌ Error testing already connected port {port}: {str(e)}")
                     
                     # Method 1: Try shell command
                     try:
@@ -401,7 +438,7 @@ class SimpleRerollMonitor:
     
     def load_default_timings(self):
         """Load default screenshot timings"""
-        default_timings = [142, 155, 167, 180, 195, 207, 221]  # Custom screenshot timings (2:22, 2:35, 2:47, 3:00, 3:15, 3:27, 3:41)
+        default_timings = [128, 143, 157, 172, 187, 201, 216]  # Custom screenshot timings (2:08, 2:23, 2:37, 2:52, 3:07, 3:21, 3:36)
         self.screenshot_timings = default_timings.copy()
         self.update_timing_listbox()
     
